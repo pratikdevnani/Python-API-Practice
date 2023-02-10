@@ -1,3 +1,5 @@
+## Steps to run the application
+
 To create a virtual environment in your root directory
 
 ```
