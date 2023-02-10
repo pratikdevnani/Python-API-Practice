@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.params import Body
 from pydantic import BaseModel
+from typing import Optional
 
 app = FastAPI()
 
@@ -13,6 +14,10 @@ So if there are 2 or more methods with the same path route, the first one is the
 class Post(BaseModel):
     title : str
     content : str
+    #can supply default value
+    published : bool = True
+    #optional field where if the user does not provide, defaults to None
+    rating: Optional[int] = None
 
 #This is called a route or path operation
 @app.get("/")
@@ -34,7 +39,11 @@ def create_posts(payload: dict = Body(...)):
 #accepting post data of the format {title str, content str} enforced using pydantic
 @app.post("/createPostsCheck")
 # we reference the post class to give the format that we need the post request body to send
-def create_posts(new_post : Post):
-    print(new_post)
-    print(new_post.title)
-    return {"data" : "new post"}
+def create_posts(post : Post):
+    print(post)
+    print(post.title)
+    print(post.published)
+    print(post.rating)
+    # to convert pydantic model to dictionary
+    print(post.dict())
+    return {"data" : "new post recieved"}
