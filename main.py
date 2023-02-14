@@ -46,9 +46,9 @@ def create_posts(payload: dict = Body(...)):
     return {"new_post" : f"title : {payload['title']}, content : {payload['content']}"}'''
 
 #accepting post data of the format {title str, content str} enforced using pydantic
-@app.post("/posts")
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
 #we reference the post class to give the format that we need the post request body to send
-def create_posts(post : Post):
+def create_posts(post : Post, response : Response):
     '''print(post)
     print(post.title)
     print(post.published)
