@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status, HTTPException
 from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
@@ -61,10 +61,22 @@ def create_posts(post : Post):
     my_posts.append(post_dict)
     return {"data" : post_dict}
 
+#we put this above the /posts/{id} since fast api validates URL on the basis of order, it will try to insert "latest" as an int int the below function and throw an error
+#to avoid this, we make sure it finds /posts/latest/ first and then the id one
+@app.get("/posts/latest")
+def get_latest_post():
+    post = my_posts[-1]
+    return {"detail" : post}
+
+
 #id field is a path parameter
 @app.get("/posts/{id}")
-#we need to validate if this is an integer and then convert else throw automatic error
-def get_post(id : int):
-    #we typecast as int as post request sends the id as a string
+#we need to validate if this is an integer and then convert else throw automatic error and take response object for this function
+def get_post(id : int, response: Response):
     post = find_post(id)
+    #send an error code if not found and throw an error
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"post with id: {id} was not found")
+        # response.status_code = status.HTTP_404_NOT_FOUND
+        # return{' error message' : f"post with id: {id} was not found"}
     return {"post detail" : post}
