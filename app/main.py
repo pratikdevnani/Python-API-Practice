@@ -35,7 +35,7 @@ def find_index_post(id):
 #This is called a route or path operation
 @app.get("/")
 async def root():
-    return {"message": "Checking Reload"}
+    return {"message": "Welcome to the API practice application using FastAPI"}
 
 @app.get("/posts")
 def get_posts():
@@ -89,7 +89,17 @@ def get_post(id : int, response: Response):
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id : int):
     post_index = find_index_post(id)
-    if not post_index:
+    if post_index == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} not found")
     my_posts.pop(post_index)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+@app.put("/posts/{id}")
+def update_post(id : int, post : Post, response : Response):
+    post_index = find_index_post(id)
+    if post_index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} not found")
+    post_dict = post.dict()
+    post_dict["id"] = id
+    my_posts[post_index] = post_dict
+    return {'data' : post_dict}
