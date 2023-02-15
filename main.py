@@ -27,6 +27,11 @@ def find_post(id):
         if p["id"] == id:
             return p
 
+def find_index_post(id):
+    for i, p in enumerate(my_posts):
+        if p['id'] == id:
+            return i
+
 #This is called a route or path operation
 @app.get("/")
 async def root():
@@ -80,3 +85,11 @@ def get_post(id : int, response: Response):
         # response.status_code = status.HTTP_404_NOT_FOUND
         # return{' error message' : f"post with id: {id} was not found"}
     return {"post detail" : post}
+
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id : int):
+    post_index = find_index_post(id)
+    if not post_index:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} not found")
+    my_posts.pop(post_index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
