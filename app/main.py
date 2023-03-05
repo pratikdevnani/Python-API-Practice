@@ -3,6 +3,16 @@ from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
 from random import randrange
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+try:
+    conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = 'Monster@0255', cursor_factory = RealDictCursor)
+    cursor = conn.cursor()
+    print("Database connection was successful")
+except Exception as error:
+    print("Connection to database failed")
+    print("Error - ", error)
 
 app = FastAPI()
 
@@ -18,7 +28,7 @@ class Post(BaseModel):
     #can supply default value
     published : bool = True
     #optional field where if the user does not provide, defaults to None
-    rating: Optional[int] = None
+    # rating: Optional[int] = None
 
 my_posts = [{'title' : 'title of post 1', "content" : "content of post 1", "id" : 1}, {"title" : "favorite foods", "content" : "pizza", "id" : 2}]
 
