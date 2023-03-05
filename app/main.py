@@ -36,11 +36,6 @@ class Post(BaseModel):
 
 my_posts = [{'title' : 'title of post 1', "content" : "content of post 1", "id" : 1}, {"title" : "favorite foods", "content" : "pizza", "id" : 2}]
 
-def find_post(id):
-    for p in my_posts:
-        if p["id"] == id:
-            return p
-
 def find_index_post(id):
     for i, p in enumerate(my_posts):
         if p['id'] == id:
@@ -58,29 +53,10 @@ def get_posts():
     posts = cursor.fetchall()
     return {'data' : posts}
 
-'''#post method for storing data from post request
-@app.post("/posts")
-#automatically extracts all info from body and stores in a dictionary with name "payload"
-def create_posts(payload: dict = Body(...)):
-    #prints the payload on the terminal
-    print(payload)
-    return {"new_post" : f"title : {payload['title']}, content : {payload['content']}"}'''
-
 #accepting post data of the format {title str, content str} enforced using pydantic
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 #we reference the post class to give the format that we need the post request body to send
-def create_posts(post : Post, response : Response):
-    '''print(post)
-    print(post.title)
-    print(post.published)
-    print(post.rating)
-    # to convert pydantic model to dictionary
-    print(post.dict())'''
-
-    # post_dict = post.dict()
-    # post_dict['id'] = randrange(0, 1000000)
-    # my_posts.append(post_dict)
-
+def create_posts(post : Post):
     cursor.execute(""" INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
     new_post = cursor.fetchone()
     # need to commit to finalize the input in the database
@@ -98,27 +74,25 @@ def get_latest_post():
 #id field is a path parameter
 @app.get("/posts/{id}")
 #we need to validate if this is an integer and then convert else throw automatic error and take response object for this function
-def get_post(id : int, response: Response):
+def get_post(id : int):
     cursor.execute(""" SELECT * FROM posts WHERE id = %s""", (str(id)))
     post = cursor.fetchone()
-    # post = find_post(id)
     #send an error code if not found and throw an error
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"post with id: {id} was not found")
-        # response.status_code = status.HTTP_404_NOT_FOUND
-        # return{' error message' : f"post with id: {id} was not found"}
     return {"post detail" : post}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id : int):
-    post_index = find_index_post(id)
-    if post_index == None:
+    cursor.execute(""" DELETE FROM post WHERE id = %s RETURNING * """, (str(id),))
+    deleted_post = cursor.fetchone()
+    conn.commit()
+    if delete_post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} not found")
-    my_posts.pop(post_index)
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return {'deleted post' : deleted_post}
 
 @app.put("/posts/{id}")
-def update_post(id : int, post : Post, response : Response):
+def update_post(id : int, post : Post):
     post_index = find_index_post(id)
     if post_index == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"post with id: {id} not found")
