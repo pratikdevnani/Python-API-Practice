@@ -5,14 +5,18 @@ from typing import Optional
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import time
 
-try:
-    conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = 'Monster@0255', cursor_factory = RealDictCursor)
-    cursor = conn.cursor()
-    print("Database connection was successful")
-except Exception as error:
-    print("Connection to database failed")
-    print("Error - ", error)
+while True:
+    try:
+        conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = 'Monster@0255', cursor_factory = RealDictCursor)
+        cursor = conn.cursor()
+        print("Database connection was successful")
+        break
+    except Exception as error:
+        print("Connection to database failed")
+        print("Error - ", error)
+        time.sleep(2)
 
 app = FastAPI()
 
@@ -50,7 +54,9 @@ async def root():
 @app.get("/posts")
 def get_posts():
     # auto conversion to json
-    return {"data" : my_posts}
+    cursor.execute(""" SELECT * FROM posts""")
+    posts = cursor.fetchall()
+    return {'data' : posts}
 
 '''#post method for storing data from post request
 @app.post("/posts")
@@ -71,10 +77,15 @@ def create_posts(post : Post, response : Response):
     # to convert pydantic model to dictionary
     print(post.dict())'''
 
-    post_dict = post.dict()
-    post_dict['id'] = randrange(0, 1000000)
-    my_posts.append(post_dict)
-    return {"data" : post_dict}
+    # post_dict = post.dict()
+    # post_dict['id'] = randrange(0, 1000000)
+    # my_posts.append(post_dict)
+
+    cursor.execute(""" INSERT INTO posts (title, content, published) VALUES(%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    new_post = cursor.fetchone()
+    # need to commit to finalize the input in the database
+    conn.commit()
+    return {"data" : new_post}
 
 #we put this above the /posts/{id} since fast api validates URL on the basis of order, it will try to insert "latest" as an int int the below function and throw an error
 #to avoid this, we make sure it finds /posts/latest/ first and then the id one
@@ -88,7 +99,9 @@ def get_latest_post():
 @app.get("/posts/{id}")
 #we need to validate if this is an integer and then convert else throw automatic error and take response object for this function
 def get_post(id : int, response: Response):
-    post = find_post(id)
+    cursor.execute(""" SELECT * FROM posts WHERE id = %s""", (str(id)))
+    post = cursor.fetchone()
+    # post = find_post(id)
     #send an error code if not found and throw an error
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"post with id: {id} was not found")
