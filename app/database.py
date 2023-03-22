@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # basically give the location of the postgres location and the database
-SQLALCHEMY_DATABASE_URL = 'postgres://postgres:Monster@0255@localhost/fastapi'
+SQLALCHEMY_DATABASE_URL = 'postgresql://postgres:1998@localhost/fastapi'
 
 # we need an engine to make a connection with the Database
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
