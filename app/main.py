@@ -13,7 +13,7 @@ models.Base.metadata.create_all(bind = engine)
 
 while True:
     try:
-        conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = 'Monster@0255', cursor_factory = RealDictCursor)
+        conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = '1998', cursor_factory = RealDictCursor)
         cursor = conn.cursor()
         print("Database connection was successful")
         break
