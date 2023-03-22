@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from fastapi.params import Body
 from pydantic import BaseModel
 from typing import Optional
@@ -6,24 +6,38 @@ from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
+from sqlalchemy.orm import Session
 import models
-from database import engine
+from database import engine, SessionLocal
 # from . import models
 # from .database import engine
 
 # this is going to create the model in the main file
 models.Base.metadata.create_all(bind = engine)
 
-while True:
+'''
+This is when you want to use SQLAlchemy ORM for conversing with the database
+'''
+def get_db():
+    db = SessionLocal()
     try:
-        conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = '1998', cursor_factory = RealDictCursor)
-        cursor = conn.cursor()
-        print("Database connection was successful")
-        break
-    except Exception as error:
-        print("Connection to database failed")
-        print("Error - ", error)
-        time.sleep(2)
+        yield db
+    finally:
+        db.close()
+
+'''
+This code is for when you directly want to connect with a SQL table using psycopg
+'''
+# while True:
+#     try:
+#         conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = '1998', cursor_factory = RealDictCursor)
+#         cursor = conn.cursor()
+#         print("Database connection was successful")
+#         break
+#     except Exception as error:
+#         print("Connection to database failed")
+#         print("Error - ", error)
+#         time.sleep(2)
 
 app = FastAPI()
 
@@ -47,6 +61,10 @@ def find_index_post(id):
     for i, p in enumerate(my_posts):
         if p['id'] == id:
             return i
+
+@app.get("/sqlalchemy")
+def test_posts(db : Session = Depends(get_db)):
+    return {"status" : "connection established with sqlalchemy ORM"}
 
 #This is called a route or path operation
 @app.get("/")
