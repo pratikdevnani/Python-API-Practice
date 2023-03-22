@@ -8,7 +8,10 @@ from psycopg2.extras import RealDictCursor
 import time
 import models
 from database import engine
+# from . import models
+# from .database import engine
 
+# this is going to create the model in the main file
 models.Base.metadata.create_all(bind = engine)
 
 while True:

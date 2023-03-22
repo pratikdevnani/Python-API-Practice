@@ -1,7 +1,9 @@
 from database import Base
 from sqlalchemy import Column, Integer, String, Boolean
 
+# we should always capitalize class names
 class Post(Base):
+    # give the tablename that should be there in postgres
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key = True, nullable = False)
