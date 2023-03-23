@@ -8,7 +8,7 @@ from psycopg2.extras import RealDictCursor
 import time
 from sqlalchemy.orm import Session
 import models
-from database import engine, SessionLocal
+from database import engine, get_db
 # from . import models
 # from .database import engine
 
@@ -16,28 +16,18 @@ from database import engine, SessionLocal
 models.Base.metadata.create_all(bind = engine)
 
 '''
-This is when you want to use SQLAlchemy ORM for conversing with the database
-'''
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-'''
 This code is for when you directly want to connect with a SQL table using psycopg
 '''
-# while True:
-#     try:
-#         conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = '1998', cursor_factory = RealDictCursor)
-#         cursor = conn.cursor()
-#         print("Database connection was successful")
-#         break
-#     except Exception as error:
-#         print("Connection to database failed")
-#         print("Error - ", error)
-#         time.sleep(2)
+while True:
+    try:
+        conn = psycopg2.connect(host = 'localhost', database = 'fastapi', user = 'postgres', password = '1998', cursor_factory = RealDictCursor)
+        cursor = conn.cursor()
+        print("Database connection was successful")
+        break
+    except Exception as error:
+        print("Connection to database failed")
+        print("Error - ", error)
+        time.sleep(2)
 
 app = FastAPI()
 
@@ -63,8 +53,11 @@ def find_index_post(id):
             return i
 
 @app.get("/sqlalchemy")
+# we basically create a session as soon as the url gets hit
 def test_posts(db : Session = Depends(get_db)):
-    return {"status" : "connection established with sqlalchemy ORM"}
+    # this returns all the posts in the database
+    posts = db.query(models.Post).all()
+    return {"Data" : posts}
 
 #This is called a route or path operation
 @app.get("/")

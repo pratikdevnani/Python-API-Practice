@@ -12,3 +12,13 @@ SessionLocal = sessionmaker(autocommit = False, autoflush = False, bind = engine
 
 # we need a base so that each python model can import
 Base = declarative_base()
+
+'''
+This is when you want to use SQLAlchemy ORM for conversing with the database
+'''
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
